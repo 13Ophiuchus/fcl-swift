@@ -4,7 +4,11 @@ import Combine
 import Flow
 import Starscream
 import SwiftUI
+
+#if canImport(UIKit)
 import UIKit
+#endif
+
 import WalletConnectKMS
 import WalletConnectNetworking
 import WalletConnectPairing
@@ -64,7 +68,7 @@ public final class FCL: NSObject, ObservableObject {
         }
     }
 
-    public func config(metadata: FCL.Metadata,
+    public func config(meta FCL.Metadata,
                        env: Flow.ChainID,
                        provider: FCL.Provider)
     {
@@ -125,7 +129,7 @@ public final class FCL: NSObject, ObservableObject {
             icons: [icon]
         )
 
-        Pair.configure(metadata: metadata)
+        Pair.configure(meta metadata)
         Networking.configure(projectId: projectID, socketFactory: SocketFactory())
         wcProvider = FCL.WalletConnectProvider()
     }
@@ -148,6 +152,7 @@ public final class FCL: NSObject, ObservableObject {
         }
     }
 
+    #if canImport(UIKit)
     public func openDiscovery() {
         let discoveryVC = UIHostingController(rootView: DiscoveryView())
         discoveryVC.view.backgroundColor = .clear
@@ -161,6 +166,7 @@ public final class FCL: NSObject, ObservableObject {
         }
         vc.dismiss(animated: true, completion: completion)
     }
+    #endif
 
     public func generateNonce() -> String {
         let letters = "0123456789abcdef"
