@@ -190,7 +190,7 @@ public final class FCL: NSObject, ObservableObject {
 // MARK: - Util
 
 internal func serviceOfType(services: [FCL.Service]?, type: FCL.ServiceType) -> FCL.Service? {
-    return services?.first(where: { service in
+    services?.first { service in
         service.type == type
-    })
+    }
 }
