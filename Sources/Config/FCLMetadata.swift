@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Metadata.swift
 //
 //
 //  Created by Hao Fu on 17/7/2022.
@@ -38,9 +38,14 @@ public extension FCL {
             public let appIdentifier: String
             public let nonce: String
 
-            public init(appIdentifier: String, nonce: String = fcl.generateNonce()) {
+            public init(appIdentifier: String, nonce: String) {
                 self.appIdentifier = appIdentifier
                 self.nonce = nonce
+            }
+
+            public init(appIdentifier: String) {
+                self.init(appIdentifier: appIdentifier,
+                          nonce: fcl.generateNonce())
             }
         }
 
