@@ -68,6 +68,7 @@ extension FCL {
         }
     }
 
+    @MainActor
     class WalletConnectProvider: FCLStrategy {
         var sessions: [Session] = []
         var pairings: [Pairing] = []
@@ -114,7 +115,7 @@ extension FCL {
                     let authnRequest = Request(
                         topic: response.topic,
                         method: WCMethod.authn.rawValue,
-                        params: AnyCodable([dataString]),
+                        params: AnyCodable(any: [dataString]),
                         chainId: blockchain
                     )
 
@@ -133,7 +134,7 @@ extension FCL {
                     }
                     return model
                 } catch {
-                    Task {
+                    Task { @MainActor in
                         try? fcl.keychain.deleteAll()
                         await disconnectAll()
                     }
@@ -160,7 +161,7 @@ extension FCL {
             let request1 = Request(
                 topic: sessionTopic,
                 method: WCMethod(service: method).rawValue,
-                params: AnyCodable([dataString]),
+                params: AnyCodable(any: [dataString]),
                 chainId: blockchain
             )
 
@@ -278,7 +279,6 @@ extension FCL {
         }
         #else
         private func connectWithExampleWallet(uri _: WalletConnectURI? = nil) throws {
-            // No-op on platforms without UIKit; ensure authn is configured
             guard fcl.config.get(.authn) != nil else {
                 throw Flow.FError.urlEmpty
             }
