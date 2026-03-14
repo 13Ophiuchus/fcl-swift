@@ -15,8 +15,10 @@ import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSign
 
+@MainActor
 public let fcl = FCL.shared
 
+@MainActor
 public final class FCL: NSObject, ObservableObject {
     public static let shared = FCL()
 
@@ -122,14 +124,14 @@ public final class FCL: NSObject, ObservableObject {
             return
         }
 
-        let metadata = AppMetadata(
+        let appMetadata = AppMetadata(
             name: name,
             description: description,
             url: urlScheme,
             icons: [icon]
         )
 
-        Pair.configure(meta metadata)
+        Pair.configure(meta appMetadata)
         Networking.configure(projectId: projectID, socketFactory: SocketFactory())
         wcProvider = FCL.WalletConnectProvider()
     }
