@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SignUserMessage.swift
 //
 //
 //  Created by Hao Fu on 25/9/2022.
@@ -48,8 +48,20 @@ public extension FCL {
             throw FCLError.encodeFailure
         }
 
-        let model = try await fcl.getStategy().execService(service: service, request: SignableMessage(addr: currentUser.addr.hex, message: messageData.hexValue))
-        guard let data = model.data, let signature = data.signature, let address = data.addr, let keyId = data.keyId else {
+        let strategy = try fcl.getStategy()
+        let model = try await strategy.execService(
+            service: service,
+            request: SignableMessage(
+                addr: currentUser.addr.hex,
+                message: messageData.hexValue
+            )
+        )
+
+        guard let data = model.data,
+              let signature = data.signature,
+              let address = data.addr,
+              let keyId = data.keyId
+        else {
             throw FCLError.generic
         }
 
