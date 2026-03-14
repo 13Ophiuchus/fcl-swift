@@ -72,7 +72,7 @@ public final class FCL: NSObject, ObservableObject {
         }
     }
 
-    public func config(meta: FCL.Metadata,
+    public func config(meta FCL.Metadata,
                        env: Flow.ChainID,
                        provider: FCL.Provider)
     {
@@ -107,12 +107,12 @@ public final class FCL: NSObject, ObservableObject {
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         } else {
             guard let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
-                  let provider = FCL.Provider(id: providerId),
-                  provider.supportAutoConnect
+                  let restoredProvider = FCL.Provider(id: providerId),
+                  restoredProvider.supportAutoConnect
             else {
                 return
             }
-            _ = config.put(.authn, value: provider.endpoint(chainId: env))
+            _ = config.put(.authn, value: restoredProvider.endpoint(chainId: env))
         }
     }
 
