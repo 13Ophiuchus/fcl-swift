@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  FlowUser.swift
 //
 //
 //  Created by lmcmz on 5/9/21.
@@ -34,6 +34,12 @@ extension FCL.User: FCLSigner {
             throw FCLError.missingAuthz
         }
 
-        return try await fcl.getStategy().execService(service: authzService, request: signable)
+        let strategy = try fcl.getStategy()
+        let response = try await strategy.execService(
+            service: authzService,
+            request: signable
+        )
+
+        return response
     }
 }
