@@ -9,7 +9,11 @@ import Combine
 import Flow
 import Foundation
 import Starscream
+
+#if canImport(UIKit)
 import UIKit
+#endif
+
 import WalletConnectPairing
 import WalletConnectSign
 import WalletConnectUtils
@@ -79,7 +83,10 @@ extension FCL {
             // try? Sign.instance.cleanup()
         }
 
-        func execService<T>(url _: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where T: Encodable {
+        func execService<T>(url _: URL,
+                            method: FCL.ServiceType,
+                            request: T?) async throws -> FCL.Response where T: Encodable
+        {
             guard let env = fcl.config.get(.env),
                   let network = WCFlowBlockchain.allCases.first(where: { $0.rawValue == env }),
                   let blockchain = network.blockchain
@@ -95,18 +102,22 @@ extension FCL {
                     currentSession = response
 
                     if let data = response.topic.data(using: .utf8) {
-                        try? fcl.keychain.add(data: data, forKey: .StorageKey.wcSession.rawValue)
+                        try? fcl.keychain.add( data, forKey: .StorageKey.wcSession.rawValue)
                     }
 
                     guard let data = try? JSONEncoder().encode(BaseConfigRequest()),
-                          let dataString = String(data: data, encoding: .utf8)
+                          let dataString = String( data, encoding: .utf8)
                     else {
                         throw FCLError.encodeFailure
                     }
-                    let authnRequest = Request(topic: response.topic,
-                                               method: WCMethod.authn.rawValue,
-                                               params: AnyCodable([dataString]),
-                                               chainId: blockchain)
+
+                    let authnRequest = Request(
+                        topic: response.topic,
+                        method: WCMethod.authn.rawValue,
+                        params: AnyCodable([dataString]),
+                        chainId: blockchain
+                    )
+
                     try await Sign.instance.request(params: authnRequest)
                     let authnResponse = try await Sign.instance.sessionResponsePublisher.async()
 
@@ -132,7 +143,7 @@ extension FCL {
             }
 
             guard let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
-                  let sessionTopic = String(data: data, encoding: .utf8)
+                  let sessionTopic = String( data, encoding: .utf8)
             else {
                 throw FCLError.unauthenticated
             }
@@ -143,13 +154,15 @@ extension FCL {
             else {
                 throw FCLError.encodeFailure
             }
-            
+
             let dataString = compressedData.base64EncodedString()
 
-            let request1 = Request(topic: sessionTopic,
-                                   method: WCMethod(service: method).rawValue,
-                                   params: AnyCodable([dataString]),
-                                   chainId: blockchain)
+            let request1 = Request(
+                topic: sessionTopic,
+                method: WCMethod(service: method).rawValue,
+                params: AnyCodable([dataString]),
+                chainId: blockchain
+            )
 
             try await Sign.instance.request(params: request1)
             try connectWithExampleWallet()
@@ -182,10 +195,8 @@ extension FCL {
         public func disconnect(topic: String? = nil) async throws {
             if let topic {
                 try await Pair.instance.disconnect(topic: topic)
-            } else {
-                if let currentSession {
-                    try await Pair.instance.disconnect(topic: currentSession.topic)
-                }
+            } else if let currentSession {
+                try await Pair.instance.disconnect(topic: currentSession.topic)
             }
         }
 
@@ -224,13 +235,19 @@ extension FCL {
             if let existingPairing = pairings.first(where: { $0.peer?.url == endpoint }) {
                 topic = existingPairing.topic
             } else if let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
-                      let sessionTopic = String(data: data, encoding: .utf8)
+                      let sessionTopic = String( data, encoding: .utf8)
             {
                 topic = sessionTopic
             }
 
             let blockchains: Set<Blockchain> = Set([blockchain])
-            let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [])]
+            let namespaces: [String: ProposalNamespace] = [
+                blockchain.namespace: ProposalNamespace(
+                    chains: blockchains,
+                    methods: methods,
+                    events: []
+                )
+            ]
 
             if let topic {
                 try await Sign.instance.connect(requiredNamespaces: namespaces, topic: topic)
@@ -242,10 +259,12 @@ extension FCL {
             }
         }
 
+        #if canImport(UIKit)
         private func connectWithExampleWallet(uri: WalletConnectURI? = nil) throws {
             guard let endpoint = fcl.config.get(.authn) else {
                 throw Flow.FError.urlEmpty
             }
+
             var url = URL(string: endpoint)
             if let encodedURI = uri?.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) {
                 url = URL(string: "\(endpoint)/wc?uri=\(encodedURI)")
@@ -257,6 +276,14 @@ extension FCL {
                 }
             }
         }
+        #else
+        private func connectWithExampleWallet(uri: WalletConnectURI? = nil) throws {
+            // No-op on platforms without UIKit
+            guard fcl.config.get(.authn) != nil else {
+                throw Flow.FError.urlEmpty
+            }
+        }
+        #endif
 
         func setUpWCSubscribing() {
             Sign.instance.socketConnectionStatusPublisher
@@ -265,13 +292,15 @@ extension FCL {
                     if status == .connected {
                         print("Client connected")
                     }
-                }.store(in: &publishers)
+                }
+                .store(in: &publishers)
 
             Sign.instance.sessionResponsePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { response in
                     print("Session Response ===> \(response)")
-                }.store(in: &publishers)
+                }
+                .store(in: &publishers)
 
             Sign.instance.sessionProposalPublisher
                 .receive(on: DispatchQueue.main)
@@ -279,26 +308,30 @@ extension FCL {
                     print("[RESPONDER] WC: Did receive session proposal")
                     self?.currentProposal = data.proposal
                     self?.reloadSessionAndPair()
-                }.store(in: &publishers)
+                }
+                .store(in: &publishliers)
 
             Sign.instance.sessionSettlePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] response in
                     print("Session Settle ===> \(response)")
                     self?.reloadSessionAndPair()
-                }.store(in: &publishers)
+                }
+                .store(in: &publishers)
 
             Sign.instance.sessionRequestPublisher
                 .receive(on: DispatchQueue.main)
                 .sink { _ in
                     print("[RESPONDER] WC: Did receive session request")
-                }.store(in: &publishers)
+                }
+                .store(in: &publishers)
 
             Sign.instance.sessionDeletePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
                     self?.reloadSessionAndPair()
-                }.store(in: &publishers)
+                }
+                .store(in: &publishers)
         }
     }
 }
