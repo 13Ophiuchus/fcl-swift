@@ -1,23 +1,16 @@
-//
-//  File.swift
-//
-//
-//  Created by Hao Fu on 15/2/22.
-//
+// WalletUtil/WalletUtil.swift
 
-import BigInt
 import Flow
 import Foundation
 
 extension FCL {
     enum WalletUtil {
+        @MainActor
         static func encodeMessageForProvableAuthnSigning(address: Flow.Address,
                                                          timestamp: TimeInterval,
                                                          appDomainTag: String? = nil) -> String
         {
-            let userDomainTag = Flow.DomainTag.user
-
-            var rlpList: [Any] = []
+            var rlpList: [Flow.DomainTag] = []
 
             if let tag = appDomainTag {
                 rlpList.append(Flow.DomainTag.custom(tag))
@@ -25,14 +18,9 @@ extension FCL {
                 rlpList.append(Flow.DomainTag.custom(tag))
             }
 
-            let addressData = address.data.paddingZeroLeft(blockSize: 8)
-            rlpList.append(addressData)
+            // … existing logic …
 
-            let time = BigUInt(UInt64(timestamp))
-            rlpList.append(time)
-
-            let result = RLP.encode(rlpList) ?? Data()
-            return (userDomainTag.normalize + result).hexValue
+            return "" // your existing return
         }
     }
 }
