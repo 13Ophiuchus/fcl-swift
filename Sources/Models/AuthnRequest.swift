@@ -1,46 +1,53 @@
-//
-//  File.swift
-//
-//
-//  Created by lmcmz on 28/8/21.
-//
+// Models/AuthnRequest.swift
 
 import Foundation
-import Flow
 
 public struct BaseConfigRequest: Encodable {
-    var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
-    var service: [String: String] = fcl.config.configLens("^service\\.")
+    @MainActor
+    private static func defaultApp() -> [String: String] {
+        fcl.config.configLens("^app\\.detail\\.")
+    }
+
+    @MainActor
+    private static func defaultService() -> [String: String] {
+        fcl.config.configLens("^service\\.")
+    }
+
+    @MainActor
+    private static func defaultAppId() -> String {
+        fcl.config.get(.appId) ?? ""
+    }
+
+    @MainActor
+    private static func defaultNonce() -> String {
+        fcl.config.get(.nonce) ?? ""
+    }
+
+    var app: [String: String] = BaseConfigRequest.defaultApp()
+    var service: [String: String] = BaseConfigRequest.defaultService()
     var client = ClientInfo()
 
-    var appIdentifier: String = fcl.config.get(.appId) ?? ""
-    var accountProofNonce: String = fcl.config.get(.nonce) ?? ""
-    
+    var appIdentifier: String = BaseConfigRequest.defaultAppId()
+    var accountProofNonce: String = BaseConfigRequest.defaultNonce()
+
     var config = AppConfig()
 }
 
 public struct AppConfig: Encodable {
-    var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
+    @MainActor
+    private static func defaultApp() -> [String: String] {
+        fcl.config.configLens("^app\\.detail\\.")
+    }
+
+    var app: [String: String] = AppConfig.defaultApp()
 }
 
 public struct ClientInfo: Encodable {
-    var fclVersion: String = fcl.version
+    @MainActor
+    private static func defaultVersion() -> String {
+        fcl.version
+    }
+
+    var fclVersion: String = ClientInfo.defaultVersion()
     var fclLibrary = URL(string: "https://github.com/Outblock/fcl-swift")!
-
-    @NullEncodable
-    var hostname: String? = nil
-}
-
-public struct AuthnRequest: Codable {
-    let fType: String
-    let fVsn: String
-    let type: String?
-    let endpoint: String
-    let method: String
-}
-
-public struct FCLUserSignatureResponse {
-    let addr: String
-    let keyId: Int
-    let signature: String
 }
