@@ -1,16 +1,14 @@
-//
-//  File.swift
-//
-//
-//  Created by lmcmz on 14/11/21.
-//
+// UI/SafariWebViewManager.swift
 
-import Foundation
+#if canImport(UIKit)
+import UIKit
 import SafariServices
 
-class SafariWebViewManager: NSObject {
-    static var shared = SafariWebViewManager()
-    var safariVC: SFSafariViewController?
+@MainActor
+final class SafariWebViewManager: NSObject {
+    static let shared = SafariWebViewManager()
+
+    private var safariVC: SFSafariViewController?
     var delegate: HTTPSessionDelegate?
 
     static func openSafariWebView(url: URL) {
@@ -18,24 +16,24 @@ class SafariWebViewManager: NSObject {
             let vc = SFSafariViewController(url: url)
             vc.delegate = SafariWebViewManager.shared
             vc.presentationController?.delegate = SafariWebViewManager.shared
-            vc.modalPresentationStyle = .formSheet
-//            vc.isModalInPresentation = true
             SafariWebViewManager.shared.safariVC = vc
-            UIApplication.shared.topMostViewController?.present(vc, animated: true, completion: nil)
+            UIApplication.shared.topMostViewController?.present(vc, animated: true)
         }
     }
 
-    static func dismiss() {
+    static func closeSafariWebView() {
         if let vc = SafariWebViewManager.shared.safariVC {
             DispatchQueue.main.async {
-                vc.dismiss(animated: true, completion: nil)
+                vc.dismiss(animated: true)
             }
             SafariWebViewManager.shared.stopPolling()
         }
     }
 
     func stopPolling() {
-        delegate?.isPending = false
+        delegate?.stopPolling()
+        delegate = nil
+        safariVC = nil
     }
 }
 
@@ -48,3 +46,4 @@ extension SafariWebViewManager: SFSafariViewControllerDelegate, UIAdaptivePresen
         stopPolling()
     }
 }
+#endif
