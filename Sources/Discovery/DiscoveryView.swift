@@ -20,15 +20,11 @@ public struct DiscoveryView: View {
             // … your existing content broken into smaller Views if needed …
 
         }
-        .background(
-            Color(
-                #if canImport(UIKit)
-                UIColor.systemBlue
-                #else
-                .blue
-                #endif
-            )
-        )
+     #if canImport(UIKit)
+.background(Color(UIColor.systemBlue))
+#else
+.background(Color.blue)
+#endif
     }
 }
 
