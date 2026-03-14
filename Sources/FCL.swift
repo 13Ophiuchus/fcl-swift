@@ -177,7 +177,7 @@ public final class FCL: NSObject, ObservableObject {
         return String((0 ..< 64).map { _ in letters.randomElement()! })
     }
 
-    internal func getStategy() throws -> FCLStrategy {
+    internal func getStategy() throws -> any FCLStrategy {
         guard let methodString = config.get(.providerMethod),
               let method = FCL.ServiceMethod(rawValue: methodString)
         else {
