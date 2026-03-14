@@ -3,51 +3,39 @@
 import Foundation
 
 public struct BaseConfigRequest: Encodable {
-    @MainActor
-    private static func defaultApp() -> [String: String] {
-        fcl.config.configLens("^app\\.detail\\.")
+    var app: [String: String]
+    var service: [String: String]
+    var client: ClientInfo
+
+    var appIdentifier: String
+    var accountProofNonce: String
+
+    var config: AppConfig
+
+    public init() {
+        self.app = fcl.config.configLens("^app\\.detail\\.")
+        self.service = fcl.config.configLens("^service\\.")
+        self.client = ClientInfo()
+        self.appIdentifier = fcl.config.get(.appId) ?? ""
+        self.accountProofNonce = fcl.config.get(.nonce) ?? ""
+        self.config = AppConfig()
     }
-
-    @MainActor
-    private static func defaultService() -> [String: String] {
-        fcl.config.configLens("^service\\.")
-    }
-
-    @MainActor
-    private static func defaultAppId() -> String {
-        fcl.config.get(.appId) ?? ""
-    }
-
-    @MainActor
-    private static func defaultNonce() -> String {
-        fcl.config.get(.nonce) ?? ""
-    }
-
-    var app: [String: String] = BaseConfigRequest.defaultApp()
-    var service: [String: String] = BaseConfigRequest.defaultService()
-    var client = ClientInfo()
-
-    var appIdentifier: String = BaseConfigRequest.defaultAppId()
-    var accountProofNonce: String = BaseConfigRequest.defaultNonce()
-
-    var config = AppConfig()
 }
 
 public struct AppConfig: Encodable {
-    @MainActor
-    private static func defaultApp() -> [String: String] {
-        fcl.config.configLens("^app\\.detail\\.")
-    }
+    var app: [String: String]
 
-    var app: [String: String] = AppConfig.defaultApp()
+    public init() {
+        self.app = fcl.config.configLens("^app\\.detail\\.")
+    }
 }
 
 public struct ClientInfo: Encodable {
-    @MainActor
-    private static func defaultVersion() -> String {
-        fcl.version
-    }
+    var fclVersion: String
+    var fclLibrary: URL
 
-    var fclVersion: String = ClientInfo.defaultVersion()
-    var fclLibrary = URL(string: "https://github.com/Outblock/fcl-swift")!
+    public init() {
+        self.fclVersion = fcl.version
+        self.fclLibrary = URL(string: "https://github.com/Outblock/fcl-swift")!
+    }
 }
