@@ -72,7 +72,7 @@ public final class FCL: NSObject, ObservableObject {
         }
     }
 
-    public func config(meta FCL.Metadata,
+    public func config(meta: FCL.Metadata,
                        env: Flow.ChainID,
                        provider: FCL.Provider)
     {
