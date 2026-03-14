@@ -2,6 +2,7 @@
 
 import Foundation
 
+@MainActor
 public struct BaseConfigRequest: Encodable {
     var app: [String: String]
     var service: [String: String]
@@ -22,6 +23,7 @@ public struct BaseConfigRequest: Encodable {
     }
 }
 
+@MainActor
 public struct AppConfig: Encodable {
     var app: [String: String]
 
@@ -30,6 +32,7 @@ public struct AppConfig: Encodable {
     }
 }
 
+@MainActor
 public struct ClientInfo: Encodable {
     var fclVersion: String
     var fclLibrary: URL
