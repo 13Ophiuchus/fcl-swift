@@ -144,7 +144,7 @@ public extension FCL {
         case httpPost = "HTTP/POST"
         case walletConnect = "WC/RPC"
 
-        var provider: FCLStrategy {
+        var provider: any FCLStrategy {
             switch self {
             case .httpPost:
                 return fcl.httpProvider
