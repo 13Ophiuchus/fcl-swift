@@ -43,9 +43,10 @@ public extension FCL {
                 self.nonce = nonce
             }
 
-            public init(appIdentifier: String) {
-                self.init(appIdentifier: appIdentifier,
-                          nonce: fcl.generateNonce())
+            @MainActor
+            public static func withGeneratedNonce(appIdentifier: String) -> AccountProofConfig {
+                AccountProofConfig(appIdentifier: appIdentifier,
+                                   nonce: fcl.generateNonce())
             }
         }
 
