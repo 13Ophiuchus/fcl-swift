@@ -1,6 +1,5 @@
 //
-//  File.swift
-//
+//  WalletConnectProvider.swift
 //
 //  Created by Hao Fu on 26/9/2022.
 //
@@ -23,6 +22,7 @@ extension WebSocket: WebSocketConnecting {}
 
 internal class SocketFactory: WebSocketFactory {
     var socket: WebSocket?
+
     func create(with url: URL) -> WebSocketConnecting {
         let socket = WebSocket(url: url)
         self.socket = socket
@@ -79,14 +79,14 @@ extension FCL {
             setUpWCSubscribing()
             reloadSession()
             reloadPair()
-
             // try? Sign.instance.cleanup()
         }
 
-        func execService<T>(url _: URL,
-                            method: FCL.ServiceType,
-                            request: T?) async throws -> FCL.Response where T: Encodable
-        {
+        func execService<T>(
+            url _: URL,
+            method: FCL.ServiceType,
+            request: T?
+        ) async throws -> FCL.Response where T: Encodable {
             guard let env = fcl.config.get(.env),
                   let network = WCFlowBlockchain.allCases.first(where: { $0.rawValue == env }),
                   let blockchain = network.blockchain
@@ -240,7 +240,7 @@ extension FCL {
                 topic = sessionTopic
             }
 
-            let blockchains: Set<Blockchain> = Set([blockchain])
+            let blockchains: Set<Blockchain> = [blockchain]
             let namespaces: [String: ProposalNamespace] = [
                 blockchain.namespace: ProposalNamespace(
                     chains: blockchains,
@@ -277,8 +277,8 @@ extension FCL {
             }
         }
         #else
-        private func connectWithExampleWallet(uri: WalletConnectURI? = nil) throws {
-            // No-op on platforms without UIKit
+        private func connectWithExampleWallet(uri _: WalletConnectURI? = nil) throws {
+            // No-op on platforms without UIKit; ensure authn is configured
             guard fcl.config.get(.authn) != nil else {
                 throw Flow.FError.urlEmpty
             }
@@ -309,7 +309,7 @@ extension FCL {
                     self?.currentProposal = data.proposal
                     self?.reloadSessionAndPair()
                 }
-                .store(in: &publishliers)
+                .store(in: &publishers)
 
             Sign.instance.sessionSettlePublisher
                 .receive(on: DispatchQueue.main)
