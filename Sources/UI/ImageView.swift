@@ -1,66 +1,69 @@
-//
-//  File.swift
-//
-//
-//  Created by Hao Fu on 29/11/2022.
-//
+// UI/ImageView.swift
 
-import Combine
-import Foundation
 import SwiftUI
 
-class ImageLoader: ObservableObject {
-    var didChange = PassthroughSubject<Data, Never>()
-    var data = Data() {
-        didSet {
-            didChange.send(data)
-        }
+#if canImport(UIKit)
+import UIKit
+#endif
+
+final class ImageLoader: ObservableObject {
+    let didChange = PassthroughSubject<Data, Never>()
+    private(set) var data = Data() {
+        didSet { didChange.send(data) }
     }
 
-    init(url: URL) {
-        let task = URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data = data else { return }
+    func load(from url: URL) {
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            guard let data, let self = self else { return }
             DispatchQueue.main.async {
                 self.data = data
             }
-        }
-        task.resume()
+        }.resume()
     }
 }
 
 struct ImageView: View {
-    @ObservedObject var imageLoader: ImageLoader
-    @State var image = UIImage()
-
-    init(url: URL) {
-        imageLoader = ImageLoader(url: url)
-    }
+    let url: URL
+    @StateObject private var imageLoader = ImageLoader()
+    @State private var image: Image = Image(systemName: "photo")
 
     var body: some View {
-        Image(uiImage: image)
+        image
             .resizable()
             .aspectRatio(contentMode: .fit)
             .onReceive(imageLoader.didChange) { data in
-                self.image = UIImage(data: data) ?? UIImage()
-            }.background(Color(UIColor.tertiarySystemBackground))
-    }
-}
-
-struct ImageView_Previews: PreviewProvider {
-    static var previews: some View {
-        ImageView(url: URL(string: "https://placekitten.com/g/200/200")!)
-            .onTapGesture {
-                fcl.openDiscovery()
+                #if canImport(UIKit)
+                if let uiImage = UIImage( data) {
+                    image = Image(uiImage: uiImage)
+                }
+                #endif
+            }
+            .background(
+                Color(
+                    #if canImport(UIKit)
+                    UIColor.tertiarySystemBackground
+                    #else
+                    .gray
+                    #endif
+                )
+            )
+            .onAppear {
+                imageLoader.load(from: url)
             }
     }
 }
 
+#if canImport(UIKit)
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
     var corners: UIRectCorner = .allCorners
 
     func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
         return Path(path.cgPath)
     }
 }
@@ -70,3 +73,4 @@ extension View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
     }
 }
+#endif
