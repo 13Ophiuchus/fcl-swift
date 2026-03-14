@@ -5,6 +5,7 @@
 //  Created by Hao Fu on 29/11/2022.
 //
 
+#if canImport(UIKit)
 import Foundation
 import UIKit
 
@@ -42,3 +43,4 @@ extension UIViewController {
         return presentedViewController?.topMostViewController()
     }
 }
+#endif
