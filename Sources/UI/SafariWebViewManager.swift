@@ -1,49 +1,42 @@
-// UI/SafariWebViewManager.swift
+	// UI/SafariWebViewManager.swift
 
-#if canImport(UIKit)
-import UIKit
-import SafariServices
+import Foundation
+import SwiftUI
 
 @MainActor
-final class SafariWebViewManager: NSObject {
-    static let shared = SafariWebViewManager()
+public final class SafariWebViewManager: ObservableObject {
 
-    private var safariVC: SFSafariViewController?
-    var delegate: HTTPSessionDelegate?
+	public static let shared = SafariWebViewManager()
 
-    static func openSafariWebView(url: URL) {
-        DispatchQueue.main.async {
-            let vc = SFSafariViewController(url: url)
-            vc.delegate = SafariWebViewManager.shared
-            vc.presentationController?.delegate = SafariWebViewManager.shared
-            SafariWebViewManager.shared.safariVC = vc
-            UIApplication.shared.topMostViewController?.present(vc, animated: true)
-        }
-    }
+	public weak var delegate: HTTPSessionDelegate?
+	@Published private(set) var currentURL: URL?
 
-    static func closeSafariWebView() {
-        if let vc = SafariWebViewManager.shared.safariVC {
-            DispatchQueue.main.async {
-                vc.dismiss(animated: true)
-            }
-            SafariWebViewManager.shared.stopPolling()
-        }
-    }
+	private init() {}
 
-    func stopPolling() {
-        delegate?.stopPolling()
-        delegate = nil
-        safariVC = nil
-    }
+		// Called by FCL / HTTPClient to start an auth flow.
+	public func open(url: URL) {
+		currentURL = url
+		delegate?.handleRedirect(url: url)
+	}
+
+		// Convenience for callers; just stops polling and clears state.
+	public func close() {
+		stopPolling()
+	}
+
+	public func stopPolling() {
+		delegate?.stopPolling()
+		delegate = nil
+		currentURL = nil
+	}
+
+		// Static helpers used by HTTPClient and older call sites.
+
+	public static func openSafariWebView(url: URL) {
+		SafariWebViewManager.shared.open(url: url)
+	}
+
+	public static func closeSafariWebView() {
+		SafariWebViewManager.shared.close()
+	}
 }
-
-extension SafariWebViewManager: SFSafariViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
-    func safariViewControllerDidFinish(_: SFSafariViewController) {
-        stopPolling()
-    }
-
-    func presentationControllerDidDismiss(_: UIPresentationController) {
-        stopPolling()
-    }
-}
-#endif

@@ -1,20 +1,25 @@
 //
-//  File.swift
-//  File
+//  FCLDelegate.swift
+//  FCL
 //
-//  Created by lmcmz on 4/10/21.
+//  Created by Nicholas Reich on 3/15/26.
 //
 
 import AuthenticationServices
 import Foundation
 
-public protocol FCLDelegate {
-    func showLoading()
-    func hideLoading()
+	/// UI delegate for FCL flows.
+	/// Kept on the main actor so it never has to be Sendable.
+@MainActor
+public protocol FCLDelegate: Sendable {
+	func showLoading()
+	func hideLoading()
+	func presentationAnchor() -> ASPresentationAnchor
 }
 
-extension FCLDelegate {
-    func presentationAnchor() -> ASPresentationAnchor {
-        return ASPresentationAnchor()
-    }
+public extension FCLDelegate {
+	func presentationAnchor() -> ASPresentationAnchor {
+		ASPresentationAnchor()
+	}
 }
+

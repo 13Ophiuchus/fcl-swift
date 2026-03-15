@@ -1,62 +1,111 @@
-//
-//  File.swift
-//
-//
-//  Created by Hao Fu on 25/9/2022.
-//
+	//
+	//  AccountProof.swift
+	//
+	//  Created by Hao Fu on 25/9/2022.
+	//
 
 import Flow
 import Foundation
 
 public extension FCL {
-    func getAccountProof() async throws -> FCLDataResponse {
-        guard let currentUser = currentUser, currentUser.loggedIn else {
-            throw Flow.FError.unauthenticated
-        }
 
-        guard let service = serviceOfType(services: currentUser.services, type: .accountProof),
-              let data = service.data
-        else {
-            throw FCLError.invaildService
-        }
+	struct AccountProofPayload: Decodable {
+		public let addr: String
+		public let keyId: Int?
+		public let nonce: String
+		public let signatures: [CompositeSignature]
 
-        return data
-    }
-    
-    func verifyAccountProof(includeDomainTag: Bool = false) async throws -> Bool {
-        guard let currentUser = currentUser, currentUser.loggedIn else {
-            throw Flow.FError.unauthenticated
-        }
+		enum CodingKeys: String, CodingKey {
+			case addr
+			case keyId
+			case nonce
+			case signatures
+		}
 
-        guard let service = serviceOfType(services: currentUser.services, type: .accountProof),
-              let data = service.data,
-              let address = data.address,
-              let signatures = data.signatures,
-              let appIdentifier = config.get(.appId),
-              let nonce = data.nonce
-        else {
-            throw FCLError.invaildService
-        }
+		init(from dict: [String: String]) throws {
+			guard
+				let addr = dict["addr"],
+				let nonce = dict["nonce"]
+			else {
+				throw FCLError.invaildService
+			}
 
-        guard let encoded = RLP.encode([appIdentifier.data(using: .utf8), address.hexValue.data, nonce.hexValue.data]) else {
-            throw FCLError.encodeFailure
-        }
+			self.addr = addr
+			self.nonce = nonce
 
-        let encodedTag = includeDomainTag ? Flow.DomainTag.custom("FCL-ACCOUNT-PROOF-V0.0").normalize : Data() + encoded
+			if let keyIdString = dict["keyId"], let keyId = Int(keyIdString) {
+				self.keyId = keyId
+			} else {
+				self.keyId = nil
+			}
 
-        return try await fcl.query {
-            cadence {
-                FCL.Constants.verifyAccountProofSignaturesCadence
-            }
+			if let sigsJSON = dict["signatures"],
+			   let sigData = sigsJSON.data(using: .utf8) {
+				self.signatures = try JSONDecoder().decode([CompositeSignature].self, from: sigData)
+			} else {
+				self.signatures = []
+			}
+		}
+	}
 
-            arguments {
-                [
-                    .address(Flow.Address(hex: data.address ?? "")),
-                    .string(encodedTag.hexValue),
-                    .array(signatures.compactMap { .int($0.keyId ?? -1) }),
-                    .array(signatures.compactMap { .string($0.signature ?? "") }),
-                ]
-            }
-        }.decode()
-    }
+	func getAccountProof() async throws -> AccountProofPayload {
+		guard let currentUser = currentUser, currentUser.loggedIn else {
+			throw Flow.FError.unauthenticated
+		}
+
+		guard let service = serviceOfType(services: currentUser.services, type: .authn),
+			  let data = service.data
+		else {
+			throw FCLError.invaildService
+		}
+
+		return try AccountProofPayload(from: data)
+	}
+
+	func verifyAccountProof(includeDomainTag: Bool = false) async throws -> Bool {
+		guard let currentUser = currentUser, currentUser.loggedIn else {
+			throw Flow.FError.unauthenticated
+		}
+
+		guard let service = serviceOfType(services: currentUser.services, type: .authn),
+			  let rawData = service.data
+		else {
+			throw FCLError.invaildService
+		}
+
+		let payload = try AccountProofPayload(from: rawData)
+
+		guard let appIdentifier = config.get(.appId) else {
+			throw FCLError.invaildService
+		}
+
+		guard let encoded = RLP.encode([
+			appIdentifier.data(using: .utf8),
+			payload.addr.hexValue.data,
+			payload.nonce.hexValue.data
+		]) else {
+			throw FCLError.encodeFailure
+		}
+
+		let encodedTag: Data
+		if includeDomainTag {
+			encodedTag = Flow.DomainTag.custom("FCL-ACCOUNT-PROOF-V0.0").normalize + encoded
+		} else {
+			encodedTag = encoded
+		}
+
+		return try await fcl.query {
+			cadence {
+				FCL.Constants.verifyAccountProofSignaturesCadence
+			}
+			arguments {
+				[
+					.address(Flow.Address(hex: payload.addr)),
+					.string(encodedTag.hexValue),
+					.array(payload.signatures.compactMap { .int($0.keyId ?? -1) }),
+					.array(payload.signatures.compactMap { .string($0.signature ?? "") })
+				]
+			}
+		}.decode()
+	}
 }

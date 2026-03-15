@@ -1,88 +1,89 @@
-//
-//  File.swift
-//
-//
-//  Created by Hao Fu on 26/9/2022.
-//
+	//
+	//  HTTPProvider.swift
+	//
 
-import AuthenticationServices
-import Flow
 import Foundation
 
-protocol HTTPSessionDelegate {
-    // TODO: Improve this
-    var isPending: Bool { get set }
-    var session: ASWebAuthenticationSession? { get set }
-    func openAuthenticationSession(service: FCL.Service) throws
-    func closeSession()
-}
+public extension FCL {
 
-extension FCL {
-    class HTTPProvider: NSObject, FCLStrategy {
-        internal let client = HTTPClient()
-        internal var session: ASWebAuthenticationSession?
-        // TODO: Improve this
-        internal var isPending = true
+		/// HTTP JSON RPC provider used for non–WalletConnect flows.
+	final class HTTPProvider: FCLStrategy {
 
-        override init() {
-            super.init()
-            client.delegate = self
-        }
+		public init() {}
 
-        func execService<T>(url: URL, method _: FCL.ServiceType, request: T?) async throws -> FCL.Response where T: Encodable {
-            guard let request = request else {
-                return try await client.execHttpPost(url: url)
-            }
+			// MARK: - FCLStrategy
 
-            guard let data = try? JSONEncoder().encode(request) else {
-                throw FCLError.encodeFailure
-            }
+		public func execService(
+			service: FCL.Service,
+			request: (any Encodable & Sendable)?
+		) async throws -> FCL.Response {
+			guard let url = service.endpoint else {
+				throw FCLError.invaildURL
+			}
+				// Choose HTTP verb from service.method if needed
+			let httpMethod: String
+			switch service.method ?? .httpPost {
+				case .httpGet:
+					httpMethod = "GET"
+				case .httpPost, .walletConnect:
+					httpMethod = "POST"
+			}
 
-            return try await client.execHttpPost(url: url, data: data)
-        }
-    }
-}
+			return try await execService(
+				url: url,
+				method: service.type ?? .unknown,
+				request: request,
+				httpMethod: httpMethod
+			)
+		}
 
-extension FCL.HTTPProvider: HTTPSessionDelegate {
-    // MARK: - Session
+		public func execService(
+			url: URL,
+			method: FCL.ServiceType,
+			request: (any Encodable & Sendable)?
+		) async throws -> FCL.Response {
+				// Default to POST if called directly
+			return try await execService(
+				url: url,
+				method: method,
+				request: request,
+				httpMethod: "POST"
+			)
+		}
 
-    func openAuthenticationSession(service: FCL.Service) throws {
-        guard let endpoint = service.endpoint,
-              let url = buildURL(url: endpoint, params: service.params)
-        else {
-            throw FCLError.invalidSession
-        }
+			// MARK: - Internal request helper
 
-        DispatchQueue.main.async {
-            fcl.delegate?.hideLoading()
+		private func execService(
+			url: URL,
+			method _: FCL.ServiceType,
+			request: (any Encodable & Sendable)?,
+			httpMethod: String
+		) async throws -> FCL.Response {
+			var urlRequest = URLRequest(url: url)
+			urlRequest.httpMethod = httpMethod
+			urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-            if service.type == .authn {
-                let session = ASWebAuthenticationSession(url: url,
-                                                         callbackURLScheme: nil) { _, _ in
-                    self.isPending = false
-                }
-                self.session = session
-                session.presentationContextProvider = self
-                session.prefersEphemeralWebBrowserSession = false
-                session.start()
-            } else {
-                SafariWebViewManager.openSafariWebView(url: url)
-            }
-        }
-    }
+			if let request = request {
+				let bodyData = try JSONEncoder().encode(AnyEncodable(request))
+				if httpMethod == "GET" {
+						// If you really need GET with query params, adapt here.
+						// For now, we still send body for simplicity.
+					urlRequest.httpBody = bodyData
+				} else {
+					urlRequest.httpBody = bodyData
+				}
+			}
 
-    internal func closeSession() {
-        DispatchQueue.main.async {
-            self.session?.cancel()
-        }
-    }
-}
+			let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
-extension FCL.HTTPProvider: ASWebAuthenticationPresentationContextProviding {
-    public func presentationAnchor(for _: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        if let anchor = fcl.delegate?.presentationAnchor() {
-            return anchor
-        }
-        return ASPresentationAnchor()
-    }
+			guard let httpResponse = response as? HTTPURLResponse,
+				  (200 ..< 300).contains(httpResponse.statusCode) else {
+				throw FCLError.invalidResponse
+			}
+
+			let decoder = JSONDecoder()
+			decoder.keyDecodingStrategy = .convertFromSnakeCase
+			return try decoder.decode(FCL.Response.self, from: data)
+		}
+	}
 }
