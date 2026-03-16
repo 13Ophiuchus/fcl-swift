@@ -1,5 +1,5 @@
 {
-  "originHash" : "bdf0abf9ac8f00eb3f419d37a99e10f77ac0ec091560bffa9b4ae1b036666e6e",
+  "originHash" : "ed06c4373c8560eb441005af5873cac347081ae6ba30b91ef40f3cadb55bd22b",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/attaswift/BigInt.git",
       "state" : {
-        "revision" : "0ed110f7555c34ff468e72e1686e59721f2b0da6",
-        "version" : "5.3.0"
+        "revision" : "e07e00fa1fd435143a2dcf8b7eec9a7710b2fdfe",
+        "version" : "5.7.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/outblock/flow-swift.git",
       "state" : {
-        "revision" : "e1721bea71d8a27e209398f5a740ef02f6c6c920",
-        "version" : "0.3.1"
+        "revision" : "8c745c676c6063204ea05e4ec71bc04ccc6a87b1",
+        "version" : "0.4.1"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/daltoniam/Starscream",
       "state" : {
-        "revision" : "e6b65c6d9077ea48b4a7bdda8994a1d3c6969c8d",
-        "version" : "3.1.1"
+        "revision" : "a063fda2b8145a231953c20e7a646be254365396",
+        "version" : "3.1.2"
       }
     },
     {
@@ -260,15 +260,6 @@
       "state" : {
         "revision" : "60c3e187154421171721c1a38e800b390680fb5d",
         "version" : "1.26.0"
-      }
-    },
-    {
-      "identity" : "swift-nio-zlib-support",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-nio-zlib-support.git",
-      "state" : {
-        "revision" : "37760e9a52030bb9011972c5213c3350fa9d41fd",
-        "version" : "1.0.0"
       }
     },
     {

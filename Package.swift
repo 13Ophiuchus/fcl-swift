@@ -7,7 +7,7 @@ let package = Package(
 	name: "fcl-swift",
 	platforms: [
 		.iOS(.v16),
-		.macOS(.v10_15)
+		.macOS(.v15)
 	],
 	products: [
 		.library(
