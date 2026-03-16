@@ -33,7 +33,7 @@ let package = Package(
 
 		// iOS-specific dependencies
 		.package(url: "https://github.com/daltoniam/Starscream", from: "3.1.1"),
-		.package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2.git", from: "1.6.11"),
+		.package(url: "https://github.com/trustwallet/wallet-connect-swift.git", branch: "master"),
 
 		// Vapor dependencies
 		.package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
@@ -49,19 +49,17 @@ let package = Package(
 			path: "Sources/Core"
 		),
 
-		// MARK: - iOS Module
-		.target(
-			name: "FCLiOS",
-			dependencies: [
-				"FCLCore",
-				.product(name: "Flow", package: "flow-swift"),
-				.product(name: "Starscream", package: "Starscream"),
-				.product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
-				.product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
-			],
-			path: "Sources/iOS"
-		),
-
+			.target(
+				name: "FCLiOS",
+				dependencies: [
+					"FCLCore",
+					.product(name: "Flow", package: "flow-swift"),
+					.product(name: "Starscream", package: "Starscream"),
+					.product(name: "WalletConnect", package: "wallet-connect-swift"),
+					// .product(name: "WalletConnectAuth", package: "wallet-connect-swift"), // delete
+				],
+				path: "Sources/iOS"
+			),
 
 		// MARK: - Vapor Module
 		.target(

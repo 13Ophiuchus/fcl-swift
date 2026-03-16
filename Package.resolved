@@ -1,4 +1,5 @@
 {
+  "originHash" : "bdf0abf9ac8f00eb3f419d37a99e10f77ac0ec091560bffa9b4ae1b036666e6e",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -37,6 +38,15 @@
       }
     },
     {
+      "identity" : "cryptoswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/CryptoSwift",
+      "state" : {
+        "revision" : "e45a26384239e028ec87fbcc788f513b67e10d8f",
+        "version" : "1.9.0"
+      }
+    },
+    {
       "identity" : "flow-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/outblock/flow-swift.git",
@@ -64,12 +74,12 @@
       }
     },
     {
-      "identity" : "qrcode",
+      "identity" : "promisekit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/QRCode",
+      "location" : "https://github.com/mxcl/PromiseKit",
       "state" : {
-        "revision" : "263f280d2c8144adfb0b6676109846cfc8dd552b",
-        "version" : "14.3.1"
+        "revision" : "8a98e31a47854d3180882c8068cc4d9381bf382d",
+        "version" : "6.22.1"
       }
     },
     {
@@ -271,15 +281,6 @@
       }
     },
     {
-      "identity" : "swift-qrcode-generator",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/dagronf/swift-qrcode-generator",
-      "state" : {
-        "revision" : "5ca09b6a2ad190f94aa3d6ddef45b187f8c0343b",
-        "version" : "1.0.3"
-      }
-    },
-    {
       "identity" : "swift-service-context",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-service-context.git",
@@ -307,15 +308,6 @@
       }
     },
     {
-      "identity" : "swiftimagereadwrite",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/dagronf/SwiftImageReadWrite",
-      "state" : {
-        "revision" : "5596407d1cf61b953b8e658fa8636a471df3c509",
-        "version" : "1.1.6"
-      }
-    },
-    {
       "identity" : "vapor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/vapor.git",
@@ -325,12 +317,12 @@
       }
     },
     {
-      "identity" : "walletconnectswiftv2",
+      "identity" : "wallet-connect-swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
+      "location" : "https://github.com/trustwallet/wallet-connect-swift.git",
       "state" : {
-        "revision" : "84b09a13b48d08f1092a7494e2ad70cbb92545c2",
-        "version" : "1.6.11"
+        "branch" : "master",
+        "revision" : "7dd95468711d202608c37ce7cdef72a9b0f65123"
       }
     },
     {
@@ -343,5 +335,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
