@@ -23,15 +23,21 @@ opt_in_rules:
   - type_name
   - redundant_discardable_let
 included:
-  - Sources
+  - Sources/Core
+  - Sources/iOS
+  - Sources/Vapor
+  - Sources/Legacy
+  - Tests
 excluded:
   - Sources/Flow/Protobuf
+  - .build
+  - .swiftpm
 function_parameter_count:
   warning: 20
   error: 25
 line_length:
-  warning: 250
-  error: 450
+  warning: 120
+  error: 150
 large_tuple:
   warning: 4
 trailing_comma:
@@ -43,3 +49,10 @@ type_name:
   min_length: 2
 superfluous_disable_command: warning
 reporter: "xcode"
+
+# Swift 6 specific rules
+swift_version: "6.0"
+enable_experimental_rules:
+  - strict_fileprivate
+  - unused_capture_list
+  - prefer_self_in_static_references

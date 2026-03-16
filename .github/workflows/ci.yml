@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        swift-version: [5.9, 6.0]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift-version }}
+    
+    - name: Cache Swift packages
+      uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-swift-${{ matrix.swift-version }}-${{ hashFiles('Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-swift-${{ matrix.swift-version }}-
+    
+    - name: Build
+      run: swift build -c release
+    
+    - name: Run tests
+      run: swift test --enable-code-coverage
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: .build/debug/codecov/*.json
+        flags: unittests
+        name: codecov-umbrella
+
+  test-linux:
+    name: Test on Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        swift-version: [5.9, 6.0]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift-version }}
+    
+    - name: Cache Swift packages
+      uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-swift-${{ matrix.swift-version }}-${{ hashFiles('Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-swift-${{ matrix.swift-version }}-
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libssl-dev libcurl4-openssl-dev
+    
+    - name: Build
+      run: swift build -c release
+    
+    - name: Run tests
+      run: swift test --enable-code-coverage
+
+  test-ios:
+    name: Test on iOS
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Cache Swift packages
+      uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-ios-${{ hashFiles('Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-ios-
+    
+    - name: Build for iOS
+      run: |
+        swift build -c release \
+          -Xswiftc "-sdk" \
+          -Xswiftc "`xcrun --sdk iphonesimulator --show-sdk-path`" \
+          -Xswiftc "-target" \
+          -Xswiftc "x86_64-apple-ios13.0-simulator"
+
+  lint:
+    name: SwiftLint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install SwiftLint
+      run: |
+        curl -L https://github.com/realm/SwiftLint/releases/latest/download/swiftlint_linux.zip -o swiftlint.zip
+        unzip swiftlint.zip
+        sudo mv swiftlint /usr/local/bin/
+    
+    - name: Run SwiftLint
+      run: swiftlint --strict
+
+  documentation:
+    name: Generate Documentation
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: 6.0
+    
+    - name: Generate Documentation
+      run: |
+        swift package --allow-writing-to-directory docs \
+          generate-documentation --target FCLCore \
+          --disable-indexing \
+          --transform-for-static-hosting \
+          --hosting-base-path fcl-swift \
+          --output-path docs
+    
+    - name: Upload Documentation
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: docs
+
+  compatibility:
+    name: Compatibility Check
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: 6.0
+    
+    - name: Check Package.swift
+      run: swift package resolve
+    
+    - name: Test Module Imports
+      run: |
+        echo "import FCLCore" > test.swift
+        echo "import FCLiOS" >> test.swift
+        echo "import FCLVapor" >> test.swift
+        swift -typecheck test.swift
+        rm test.swift

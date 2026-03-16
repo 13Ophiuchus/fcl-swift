@@ -1,271 +1,296 @@
-# FCL Swift
+# FCL Swift - Flow Client Library
 
-## Overview 
+A Swift library for building applications on the Flow blockchain, now with cross-platform support and server-side capabilities.
 
-This reference documents all the methods available in the SDK, and explains in detail how these methods work.
-SDKs are open source, and you can use them according to the licence.
+## 🚀 Features
 
-#### Feature list:
-- [x] Sign in/up with Wallet provider
-- [x] Configure app
-- [x] Query cadence script with arguments
-- [x] Send transaction with non-custodial mode (Blocto)
-- [x] Send transaction with custodial wallet
-- [x] Support all access api endpoint such as `GetAccount` and `GetLastestBlock`
-- [x] Sign user message
-- [x] Verify user signature
-- [x] Account Proof
-- [x] Verify account proof
-- [x] Support custom `authz` func 
+- **Cross-platform**: Works on iOS, macOS, and Linux
+- **Swift 6 Compatible**: Full concurrency support with `Sendable` conformance
+- **Modular Architecture**: Separate modules for core functionality, iOS-specific features, and Vapor server integration
+- **Type-safe**: Comprehensive error handling and type safety
+- **Async/Await**: Modern Swift concurrency patterns
 
-## Getting Started
+## 📦 Installation
 
-### Installing
-
-This is a Swift Package, and can be installed via Xcode with the URL of this repository:
+Add the package to your `Package.swift`:
 
 ```swift
-.package(name: "FCL", url: "https://github.com/outblock/fcl-swift.git", from: "0.1.1")
+dependencies: [
+    .package(url: "https://github.com/outblock/fcl-swift.git", from: "1.0.0")
+]
 ```
 
-## Config
+## 🏗️ Module Structure
 
-Values only need to be set once. We recommend doing this once and as early in the life cycle as possible. To set a configuration value, the `put` method on the `config` instance needs to be called, the `put` method returns the `config` instance so they can be chained.
-
+### FCLCore
+Cross-platform core functionality:
 ```swift
-let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "xxxx", nonce: "xxxx")
-let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "xxxx", projectID: "xxxx")
-let metadata = FCL.Metadata(appName: "xxx",
-                            appDescription: "xxx",
-                            appIcon: URL(string: "xxxx")!,
-                            location: URL(string: "xxx")!,
-                            accountProof: accountProof,
-                            walletConnectConfig: walletConnect)
+import FCLCore
 
-fcl.config(metadata: metadata,
-           env: env,
-           provider: provider)
+let fcl = FCLCore.shared
+await fcl.configure(
+    metadata: Metadata(
+        appName: "My App",
+        appDescription: "My Flow App",
+        appIcon: URL(string: "https://example.com/icon.png")!,
+        location: URL(string: "https://example.com")!
+    ),
+    env: .testnet,
+    provider: .flowWallet
+)
 
+// Query the blockchain
+let result = try await fcl.query(script: "pub fun main(): Int { return 42 }")
 ```
 
-### Common Configuration Keys
-
-| Name                            | Example                                              | Description                                                                                                                                                                                    |
-| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `accessNode.api` **(required)** | `https://access-testnet.onflow.org`                  | API URL for the Flow Blockchain Access Node you want to be communicating with. See all available access node endpoints [here](https://docs.onflow.org/access-api/#flow-access-node-endpoints). |
-| `env`                           | `testnet`                                            | Used in conjunction with stored interactions. Possible values: `local`, `canarynet`, `testnet`, `mainnet`                                                                                      |
-| `discovery.wallet` **(required)** | `https://fcl-discovery.onflow.org/testnet/authn`     | Points FCL at the Wallet or Wallet Discovery mechanism.                                                                                                                                        |
-| `app.detail.title`              | `Cryptokitties`                                      | Your applications title, can be requested by wallets and other services.                                                                                                                       |
-| `app.detail.icon`               | `https://fcl-discovery.onflow.org/images/blocto.png` | Url for your applications icon, can be requested by wallets and other services.                                                                                                                |
-| `location` **(required)**       | `https://foo.com`     | Your application's site URL, can be requested by wallets and other services.                                                                                                                |
-| `challenge.handshake`           | **DEPRECATED**                                       | Use `discovery.wallet` instead.                                                                                                                                                               |
-
-### Address replacement in scripts and transactions
-
-Configuration keys that start with `0x` will be used to find-and-replace their values in Cadence scripts and transactions input to FCL. Typically this is used to represent account addresses. Account addresses for the same contract will be different depending on the Flow network you're interacting with (eg. Testnet, Mainnet).
-This allows you to write your script or transaction once and not have to update code when you point your application at a different Flow network.
-
+### FCLiOS
+iOS-specific features with UI integration:
 ```swift
+import FCLiOS
 
-fcl.config
-    .put(key: "0xFungibleToken", value: "0xf233dcee88fe0abe")
-    .put(key: "0xFUSD", value: "0x3c5959b568896393")
+let fcl = FCLiOS.shared
+await fcl.configure(
+    metadata: metadata,
+    env: .testnet,
+    provider: .flowWallet
+)
 
+// Authenticate with wallet
+let response = try await fcl.authenticate()
+```
 
-fcl.query {
-    cadence {
-        """
-        import FungibleToken from 0xFungibleToken
-        import FUSD from 0xFUSD
+### FCLVapor
+Server-side Flow blockchain integration:
+```swift
+import Vapor
+import FCLVapor
 
-        access(all) fun main(account: Address): UFix64 {
-          let receiverRef = getAccount(account).capabilities.get<&FUSD.Vault>(/public/fusdBalance)
-            .borrow()
+// Configure FCL in your Vapor app
+app.configureFCL(FCLVapor.Configuration(
+    accessNodeURL: "https://access-testnet.onflow.org",
+    chainID: .testnet,
+    appMetadata: Metadata(...),
+    serverAccount: ServerAccount(address: ..., privateKey: ...)
+))
 
-          return receiverRef!.balance
-        }
-        """
+// Use in routes
+app.get("api", "query") { req async throws in
+    guard let fcl = req.fcl else {
+        throw Abort(.internalServerError)
     }
+    
+    return try await fcl.query(script: "pub fun main(): Int { return 42 }")
+}
+```
 
-    arguments {
-        [.address(Flow.Address(hex: address))]
+## 🔧 Usage Examples
+
+### iOS App Configuration
+
+```swift
+import SwiftUI
+import FCLiOS
+
+@main
+struct MyFlowApp: App {
+    @StateObject private var fcl = FCLiOS.shared
+    
+    init() {
+        setupFCL()
+    }
+    
+    func setupFCL() {
+        Task {
+            let metadata = Metadata(
+                appName: "My Flow App",
+                appDescription: "A decentralized app on Flow",
+                appIcon: URL(string: "https://example.com/icon.png")!,
+                location: URL(string: "https://example.com")!
+            )
+            
+            await fcl.configure(
+                metadata: metadata,
+                env: .testnet,
+                provider: .flowWallet
+            )
+        }
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(fcl)
+        }
     }
 }
 ```
 
-# Wallet Interactions
-
-These methods allows dapps to interact with FCL compatible wallets in order to authenticate the user and authorize transactions on their behalf.
-
-### Methods
-
-## `authenticate`
-
-Calling this method will authenticate the current user via any wallet that supports FCL. Once called, FCL will initiate communication with the configured `authn` endpoint which lets the user select a wallet to authenticate with. Once the wallet provider has authenticated the user, FCL will set the values on the [current user](#currentuserobject) object for future use and authorization.
-
-
-#### Usage
+### Vapor Server Configuration
 
 ```swift
-let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "xxxx", nonce: "xxxx")
-let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "xxxx", projectID: "xxxx")
-let metadata = FCL.Metadata(appName: "xxx",
-                            appDescription: "xxx",
-                            appIcon: URL(string: "xxxx")!,
-                            location: URL(string: "xxx")!,
-                            accountProof: accountProof,
-                            walletConnectConfig: walletConnect)
-let provider: FCL.Provider = .flowWallet
-fcl.config(metadata: metadata,
-           env: env,
-           provider: provider)
+import Vapor
+import FCLVapor
 
-fcl.authenticate()
-```
-
-## `authz`
-
-A **convenience method** that produces the needed authorization details for the current user to submit transactions to Flow. It defines a signing function that connects to a user's wallet provider to produce signatures to submit transactions.
-
-
-#### Usage
-
-**Note:** The default values for `proposer`, `payer`, and `authorizations` are already `fcl.authz` so there is no need to include these parameters, it is shown only for example purposes. See more on [signing roles](https://docs.onflow.org/concepts/accounts-and-keys/#signing-a-transaction).
-
-```swift
-
-try await fcl.mutate(cadence: 
-                    """
-                       transaction(test: String, testInt: Int) {
-                           prepare(signer: &Account) {
-                                log(signer.address)
-                                log(test)
-                                log(testInt)
-                           }
-                       }
-                    """,
-                    args: [.string("Test2"), .int(1)])
-```
-
----
-
-# On-chain Interactions
-
-> 📣 **These methods can be used in browsers and NodeJS.**
-
-These methods allows dapps to interact directly with the Flow blockchain via a set of functions that currently use the [Access Node API](https://docs.onflow.org/access-api/).
-
-### Methods
-
----
-
-### Query and Mutate Flow with Cadence
-
-If you want to run arbitrary Cadence scripts on the blockchain, these methods offer a convenient way to do so **without having to build, send, and decode interactions**.
-
-## `query`
-
-Allows you to submit scripts to query the blockchain.
-
-#### Options
-
-_Pass in the following as a single object with the following keys.All keys are optional unless otherwise stated._
-
-| Key       | Type                                  | Description                                                                                                                                                                                                            |
-| --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cadence` | string **(required)**                 | A valid cadence script.                                                                                                                                                                                                |
-| `arguments`    | [ArgumentFunction](#argumentfunction) | Any arguments to the script if needed should be supplied via a function that returns an array of arguments.                                                                                                            |
-| `gasLimit`   | number                                | Compute (Gas) limit for query. Read the [documentation about computation cost](https://docs.onflow.org/flow-go-sdk/building-transactions/#gas-limit) for information about how computation cost is calculated on Flow. |
-
-#### Returns
-
-| Type | Description                            |
-| ---- | -------------------------------------- |
-| Flow.ScriptResponse  | A model representation of the response. |
-
-#### Usage
-
-```swift
-fcl.query {
-    cadence {
-        """
-        access(all) fun main(a: Int, b: Int, addr: Address): Int {
-            log(addr)
-            return a + b
+@main
+struct App: Application {
+    func configure(_ app: Application) throws {
+        // Configure FCL
+        let fclConfig = FCLVapor.Configuration(
+            accessNodeURL: "https://access-testnet.onflow.org",
+            chainID: .testnet,
+            appMetadata: Metadata(
+                appName: "My Flow API",
+                appDescription: "Server-side Flow integration",
+                appIcon: URL(string: "https://api.example.com/icon.png")!,
+                location: URL(string: "https://api.example.com")!
+            ),
+            serverAccount: FCLVapor.ServerAccount(
+                address: Flow.Address(hex: "0x1234567890abcdef"),
+                privateKey: "your-private-key",
+                keyIndex: 0
+            )
+        )
+        
+        app.configureFCL(fclConfig)
+        
+        // Register routes
+        try routes(app)
+    }
+    
+    func routes(_ app: Application) throws {
+        app.get("api", "account", ":address") { req async throws -> AccountResponse in
+            guard let fcl = req.fcl else {
+                throw Abort(.internalServerError, reason: "FCL not configured")
+            }
+            
+            guard let addressString = req.parameters.get("address"),
+                  let address = Flow.Address(hex: addressString) else {
+                throw Abort(.badRequest, reason: "Invalid address")
+            }
+            
+            let account = try await fcl.getAccount(address: address)
+            return AccountResponse(account: account)
         }
-        """
+        
+        app.post("api", "execute") { req async throws -> ExecuteResponse in
+            guard let fcl = req.fcl else {
+                throw Abort(.internalServerError, reason: "FCL not configured")
+            }
+            
+            let executeRequest = try req.content.decode(ExecuteRequest.self)
+            
+            let result = try await fcl.query(
+                script: executeRequest.script,
+                arguments: executeRequest.arguments ?? []
+            )
+            
+            return ExecuteResponse(result: result)
+        }
     }
+}
 
-    arguments {
-        [.int(7), .int(6), .address(Flow.Address(hex: "0x01"))]
-    }
+struct AccountResponse: Content {
+    let account: Flow.Account
+}
+
+struct ExecuteRequest: Content {
+    let script: String
+    let arguments: [Flow.Cadence.FValue]?
+}
+
+struct ExecuteResponse: Content {
+    let result: Flow.ScriptResponse
 }
 ```
 
-## `mutate`
+## 🔄 Migration from 0.x
 
-Allows you to submit transactions to the blockchain to potentially mutate the state.
+### Breaking Changes
 
-⚠️When being used in the browser, `fcl.mutate` uses the built-in `fcl.authz` function to produce the authorization (signatures) for the current user. When calling this method from Node.js, you will need to supply your own custom authorization function.
+1. **Module Structure**: The library is now modular. Import the specific module you need:
+   - `import FCLCore` for cross-platform functionality
+   - `import FCLiOS` for iOS-specific features
+   - `import FCLVapor` for server-side integration
 
-#### Options
+2. **Concurrency**: All APIs now use `async/await` instead of callbacks:
+   ```swift
+   // Old
+   fcl.authenticate { result in
+       // Handle result
+   }
+   
+   // New
+   let result = try await fcl.authenticate()
+   ```
 
-_Pass in the following as a single object with the following keys. All keys are optional unless otherwise stated._
+3. **Configuration**: Configuration is now done through the `configure` method:
+   ```swift
+   // Old
+   fcl.config(metadata: metadata, env: env, provider: provider)
+   
+   // New (Core)
+   await fcl.configure(metadata: metadata, env: env, provider: provider)
+   
+   // New (iOS)
+   await fcl.configure(metadata: metadata, env: env, provider: provider)
+   ```
 
-| Key        | Type                                            | Description                                                                                                                                                                                                            |
-| ---------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cadence`  | string **(required)**                           | A valid cadence transaction.                                                                                                                                                                                           |
-| `arguments`     | [ArgumentFunction](#argumentfunction)           | Any arguments to the script if needed should be supplied via a function that returns an array of arguments.                                                                                                            |
-| `gasLimit`    | number                                          | Compute (Gas) limit for query. Read the [documentation about computation cost](https://docs.onflow.org/flow-go-sdk/building-transactions/#gas-limit) for information about how computation cost is calculated on Flow.                                                                               |
+### Backward Compatibility
 
-#### Returns
-
-| Type   | Description         |
-| ------ | ------------------- |
-| string | The transaction ID. |
-
-#### Usage
-
+The legacy `FCL` module is available for backward compatibility but is deprecated:
 ```swift
-
-try await fcl.mutate(cadence: 
-                    """
-                       transaction(test: String, testInt: Int) {
-                           prepare(signer: &Account) {
-                                log(signer.address)
-                                log(test)
-                                log(testInt)
-                           }
-                       }
-                    """,
-                    args: [.string("Test2"), .int(1)])
-
+import FCL // Deprecated, use specific modules instead
 ```
 
-## `getBlock`
+## 🧪 Testing
 
-A builder function that returns the interaction to get the latest block.
-
-📣 Use with `fcl.atBlockId()` and `fcl.atBlockHeight()` when building the interaction to get information for older blocks.
-
-⚠️Consider using the pre-built interaction [`fcl.latestBlock(isSealed)`](#latestblock) if you do not need to pair with any other builders.
-
-#### Arguments
-
-| Name       | Type    | Default | Description                                                                    |
-| ---------- | ------- | ------- | ------------------------------------------------------------------------------ |
-| `sealed` | boolean | true   | If the latest block should be sealed or not. See [block states](#interaction). |
-
-#### Returns after decoding
-
-| Type                          | Description                                           |
-| ----------------------------- | ----------------------------------------------------- |
-| [BlockObject](#blockobject) | The latest block if not used with any other builders. |
-
-#### Usage
-
-```swift
-fcl.getLastestBlock()
+Run tests for all platforms:
+```bash
+swift test
 ```
 
-## TODO: Add more example 
+Run tests for specific modules:
+```bash
+swift test --filter FCLCoreTests
+swift test --filter FCLiOSTests
+swift test --filter FCLVaporTests
+```
+
+## 🚀 Deployment
+
+### iOS/macOS
+The library supports iOS 13+, macOS 10.15+, and Linux. Build for your target platform:
+```bash
+swift build -c release
+```
+
+### Linux Server
+Deploy your Vapor application with FCL integration:
+```bash
+swift build -c release
+./.build/release/YourApp
+```
+
+## 📚 Documentation
+
+- [API Documentation](https://outblock.github.io/fcl-swift/)
+- [Flow Blockchain Documentation](https://docs.onflow.org/)
+- [Vapor Documentation](https://docs.vapor.codes/)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Flow blockchain team for the excellent infrastructure
+- Vapor team for the amazing server-side Swift framework
+- The Flow community for continuous support and feedback
