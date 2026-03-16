@@ -4,14 +4,13 @@ import FCLCore
 
 /// Vapor integration for FCL - enables server-side Flow blockchain interactions
 public struct FCLVapor {
-    
     /// Configuration for FCL in a Vapor application
     public struct Configuration: Sendable {
         public let accessNodeURL: String
         public let chainID: Flow.ChainID
         public let appMetadata: Metadata
         public let serverAccount: ServerAccount?
-        
+
         public init(
             accessNodeURL: String,
             chainID: Flow.ChainID,
@@ -24,29 +23,29 @@ public struct FCLVapor {
             self.serverAccount = serverAccount
         }
     }
-    
+
     /// Server-side account configuration for signing transactions
     public struct ServerAccount: Sendable {
         public let address: Flow.Address
         public let privateKey: String
         public let keyIndex: Int
-        
+
         public init(address: Flow.Address, privateKey: String, keyIndex: Int = 0) {
             self.address = address
             self.privateKey = privateKey
             self.keyIndex = keyIndex
         }
     }
-    
+
     /// FCL service for Vapor applications
     public final class Service: Sendable {
         private let core: FCLCore
         private let configuration: Configuration
-        
+
         public init(configuration: Configuration) {
             self.configuration = configuration
             self.core = FCLCore.shared
-            
+
             // Configure the core service
             Task {
                 await core.configure(
@@ -56,9 +55,9 @@ public struct FCLVapor {
                 )
             }
         }
-        
+
         // MARK: - Server-side Operations
-        
+
         /// Execute a Cadence script on the blockchain
         public func query(
             script: String,
@@ -70,7 +69,7 @@ public struct FCLVapor {
             }
             return try await core.query(script: script, args: deepCopiedArguments)
         }
-        
+
         /// Execute a transaction (requires server account for signing)
         public func mutate(
             transaction: String,
@@ -82,7 +81,7 @@ public struct FCLVapor {
             guard let serverAccount = configuration.serverAccount else {
                 throw FCLError.unauthenticated
             }
-            
+
             // Build and sign transaction with server account
             return try await signAndSendTransaction(
                 transaction: transaction,
@@ -93,21 +92,21 @@ public struct FCLVapor {
                 signer: serverAccount
             )
         }
-        
+
         /// Get account information
         public func getAccount(address: Flow.Address) async throws -> Flow.Account {
             let flow = Flow.shared
             return try await flow.accessAPI.getAccountAtLatestBlock(address: address)
         }
-        
+
         /// Get the latest block
         public func getLatestBlock() async throws -> Flow.Block {
             let flow = Flow.shared
             return try await flow.accessAPI.getLatestBlock()
         }
-        
+
         // MARK: - Private Methods
-        
+
         private func signAndSendTransaction(
             transaction: String,
             arguments: [Flow.Cadence.FValue],
@@ -122,7 +121,7 @@ public struct FCLVapor {
             // 2. Get the latest block for reference
             // 3. Sign with the server account
             // 4. Submit to the network
-            
+
             throw FCLError.generic
         }
     }
@@ -134,13 +133,13 @@ public extension Application {
     private struct FCLKey: StorageKey {
         public typealias Value = FCLVapor.Service
     }
-    
+
     /// Configure FCL for this Vapor application
     func configureFCL(_ configuration: FCLVapor.Configuration) {
         let fclService = FCLVapor.Service(configuration: configuration)
         storage[FCLKey.self] = fclService
     }
-    
+
     /// Get the FCL service
     var fcl: FCLVapor.Service? {
         storage[FCLKey.self]
