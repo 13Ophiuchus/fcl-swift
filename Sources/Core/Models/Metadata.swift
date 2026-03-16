@@ -6,7 +6,7 @@ public struct Metadata: Sendable {
     public let appIcon: URL
     public let location: URL
     public let accountProof: AccountProofConfig?
-    
+
     public init(
         appName: String,
         appDescription: String,
@@ -20,11 +20,11 @@ public struct Metadata: Sendable {
         self.location = location
         self.accountProof = accountProof
     }
-    
+
     public struct AccountProofConfig: Sendable {
         public let appIdentifier: String
         public let nonce: String
-        
+
         public init(appIdentifier: String, nonce: String) {
             self.appIdentifier = appIdentifier
             self.nonce = nonce

@@ -6,7 +6,7 @@ public struct User: Codable, Sendable {
     public let keyId: Int
     public let loggedIn: Bool
     public let services: [Service]?
-    
+
     public init(addr: Flow.Address, keyId: Int, loggedIn: Bool, services: [Service]? = nil) {
         self.addr = addr
         self.keyId = keyId
@@ -23,7 +23,7 @@ public struct Service: Codable, Sendable {
     public let identity: Identity?
     public let provider: ProviderInfo?
     public let params: [String: String]?
-    
+
     public init(
         type: ServiceType,
         endpoint: URL? = nil,
@@ -46,7 +46,7 @@ public struct Service: Codable, Sendable {
 public struct Identity: Codable, Sendable {
     public let address: String?
     public let keyId: Int?
-    
+
     public init(address: String? = nil, keyId: Int? = nil) {
         self.address = address
         self.keyId = keyId
@@ -56,7 +56,7 @@ public struct Identity: Codable, Sendable {
 public struct ProviderInfo: Codable, Sendable {
     public let address: Flow.Address?
     public let name: String?
-    
+
     public init(address: Flow.Address? = nil, name: String? = nil) {
         self.address = address
         self.name = name
