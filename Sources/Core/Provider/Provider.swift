@@ -9,7 +9,7 @@ public struct Provider: Sendable, Hashable {
     public let provider: @Sendable (Flow.ChainID) -> ProviderInfo
     public let supportNetwork: [Flow.ChainID]
     public let supportAutoConnect: Bool
-    
+
     public init(
         id: String,
         name: String,
@@ -27,11 +27,11 @@ public struct Provider: Sendable, Hashable {
         self.supportNetwork = supportNetwork
         self.supportAutoConnect = supportAutoConnect
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     public static func == (lhs: Provider, rhs: Provider) -> Bool {
         return lhs.id == rhs.id
     }
@@ -53,7 +53,7 @@ public extension Provider {
         provider: { _ in ProviderInfo(name: "Flow Wallet") },
         supportNetwork: [.mainnet, .testnet]
     )
-    
+
     static let blocto = Provider(
         id: "blocto",
         name: "Blocto",

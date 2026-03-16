@@ -15,25 +15,25 @@ public let fcl = FCL.shared
 @MainActor
 public final class FCL: NSObject, ObservableObject {
     public static let shared = FCL()
-    
+
     private let core: FCLCore
     private let ios: FCLiOS
-    
+
     @Published public var currentUser: User?
     @Published public var currentEnv: Flow.ChainID = .mainnet
     @Published public var currentProvider: Provider?
-    
+
     public var delegate: FCLDelegate?
     public var config = Config()
     public let version = "@outblock/fcl-swift@1.0.0-legacy"
-    
+
     private override init() {
         self.core = FCLCore.shared
         self.ios = FCLiOS.shared
         super.init()
         setupBindings()
     }
-    
+
     private func setupBindings() {
         Task {
             await MainActor.run {
@@ -43,40 +43,40 @@ public final class FCL: NSObject, ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Legacy API
-    
+
     public func config(metadata: Metadata, env: Flow.ChainID, provider: Provider) {
         Task {
             await ios.configure(metadata: metadata, env: env, provider: provider)
         }
     }
-    
+
     public func authenticate() async throws -> Response {
         return try await ios.authenticate()
     }
-    
+
     public func unauthenticate() async throws {
         try await ios.unauthenticate()
     }
-    
+
     public func query(script: String, args: [Flow.Cadence.FValue] = []) async throws -> Flow.ScriptResponse {
         return try await ios.query(script: script, args: args)
     }
-    
+
     public func mutate(transaction: String, args: [Flow.Cadence.FValue] = []) async throws -> Flow.ID {
         return try await ios.mutate(transaction: transaction, args: args)
     }
-    
+
     public func generateNonce() -> String {
         return ios.generateNonce()
     }
-    
+
     public func openDiscovery() {
         // Legacy discovery UI would be shown here
         // For now, this is a placeholder
     }
-    
+
     public func closeDiscoveryIfNeed(completion: (() -> Void)? = nil) {
         completion?()
     }

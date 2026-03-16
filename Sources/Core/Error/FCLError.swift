@@ -23,7 +23,7 @@ public enum FCLError: String, Error, LocalizedError, Sendable {
     case fetchAccountFailure
     case failedToConnectWallet
     case unsupportedNetwork
-    
+
     public var errorDescription: String? {
         switch self {
         case .generic: return "A generic error occurred"

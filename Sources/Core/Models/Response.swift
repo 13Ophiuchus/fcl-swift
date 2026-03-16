@@ -7,7 +7,7 @@ public struct Response: Codable, Sendable {
     public let local: Service?
     public let updates: Service?
     public let authorizationUpdates: Service?
-    
+
     public init(
         status: ResponseStatus,
         data: ResponseData? = nil,
@@ -29,7 +29,7 @@ public struct ResponseData: Codable, Sendable {
     public let addr: String?
     public let keyId: Int?
     public let services: [Service]?
-    
+
     public init(addr: String? = nil, keyId: Int? = nil, services: [Service]? = nil) {
         self.addr = addr
         self.keyId = keyId

@@ -1,20 +1,12 @@
-<<<<<<< HEAD
 // swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
-=======
-// swift-tools-version:6.2
->>>>>>> e8c5942 (f)
 import PackageDescription
 
 let package = Package(
     name: "fcl-swift",
     platforms: [
-<<<<<<< HEAD
         .iOS(.v16),
-=======
-        .iOS(.v13),
->>>>>>> e8c5942 (f)
         .macOS(.v10_15)
     ],
     products: [
@@ -36,12 +28,6 @@ let package = Package(
         ),
     ],
     dependencies: [
-<<<<<<< HEAD
-        .package(url: "https://github.com/outblock/flow-swift.git", exact: "0.3.1"),
-        .package(url: "https://github.com/daltoniam/Starscream", exact: "3.1.1"),
-        .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", exact: "1.6.11"),
-        .package(url: "https://github.com/1024jp/GzipSwift", exact: "5.2.0"),
-=======
         .package(url: "https://github.com/outblock/flow-swift.git", from: "0.3.1"),
         .package(url: "https://github.com/1024jp/GzipSwift", from: "5.2.0"),
         
@@ -51,7 +37,6 @@ let package = Package(
         
         // Vapor dependencies
         .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
->>>>>>> e8c5942 (f)
     ],
     targets: [
         // MARK: - Core Module (Cross-platform)
@@ -102,11 +87,6 @@ let package = Package(
             name: "FCLCoreTests",
             dependencies: ["FCLCore"],
             path: "Tests/CoreTests"
-        ),
-        .testTarget(
-            name: "FCLiOSTests",
-            dependencies: ["FCLiOS"],
-            path: "Tests/iOSTests"
         ),
         .testTarget(
             name: "FCLVaporTests",

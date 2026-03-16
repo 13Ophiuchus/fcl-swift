@@ -2,23 +2,23 @@ import Foundation
 
 public struct Config: Sendable {
     private var storage: [String: String] = [:]
-    
+
     public init() {}
-    
+
     @discardableResult
     public mutating func put(_ key: Key, value: String) -> Config {
         storage[key.rawValue] = value
         return self
     }
-    
+
     public func get(_ key: Key) -> String? {
         return storage[key.rawValue]
     }
-    
+
     public var dict: [String: String] {
         return storage
     }
-    
+
     public enum Key: String, CaseIterable, Sendable {
         case title = "app.detail.title"
         case description = "app.detail.description"

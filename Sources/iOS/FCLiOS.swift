@@ -154,7 +154,7 @@ private class SafariWebViewManager: NSObject, SFSafariViewControllerDelegate {
     func authenticate(url: URL, completion: @escaping (Result<Response, Error>) -> Void) {
         Task {
             do {
-                let response = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Response, Error>) in
+                let response = try await withCheckedThrowingContinuation { (continuation) in
                     self.authenticationContinuation = continuation
                 }
                 completion(.success(response))
