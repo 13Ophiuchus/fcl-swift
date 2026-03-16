@@ -72,7 +72,7 @@ public func routes(_ app: Application) throws {
 
     // Execute transaction (requires server account)
     app.post("api", "transaction") { req async throws -> String in
-        guard let _ = req.fcl else {
+        guard req.fcl != nil else {
             throw Abort(.internalServerError, reason: "FCL not configured")
         }
 

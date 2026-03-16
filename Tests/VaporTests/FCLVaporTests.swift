@@ -7,9 +7,9 @@ import Flow
 final class FCLVaporTests: XCTestCase {
     var app: Application!
 
-    override func setUp() async throws {
+    override func setUp() {
+        super.setUp()
         app = Application(.testing)
-
         let config = FCLVapor.Configuration(
             accessNodeURL: "https://access-testnet.onflow.org",
             chainID: .testnet,
@@ -20,13 +20,13 @@ final class FCLVaporTests: XCTestCase {
                 location: URL(string: "https://example.com")!
             )
         )
-
         app.configureFCL(config)
     }
 
-    override func tearDown() async throws {
+    override func tearDown() {
         app.shutdown()
         app = nil
+        super.tearDown()
     }
 
     func testFCLServiceInitialization() async throws {
