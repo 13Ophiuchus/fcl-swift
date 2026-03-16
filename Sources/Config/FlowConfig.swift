@@ -10,7 +10,7 @@ import Foundation
 public extension FCL {
 
 		/// Actor-isolated configuration store; safe under Swift 6 strict concurrency.
-	@MainActor
+
 	final class Config: @unchecked Sendable {
 
 		private var dict = [String: String]()

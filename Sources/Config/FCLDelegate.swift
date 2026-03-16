@@ -18,7 +18,7 @@ public protocol FCLDelegate: Sendable {
 }
 
 public extension FCLDelegate {
-	func presentationAnchor() -> ASPresentationAnchor {
+	@MainActor func presentationAnchor() -> ASPresentationAnchor {
 		ASPresentationAnchor()
 	}
 }
