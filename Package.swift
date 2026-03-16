@@ -50,17 +50,18 @@ let package = Package(
         ),
         
         // MARK: - iOS Module
-        .target(
-            name: "FCLiOS",
-            dependencies: [
-                "FCLCore",
-                .product(name: "Flow", package: "flow-swift"),
-                .product(name: "Starscream", package: "Starscream"),
-                .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
-                .product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
-            ],
-            path: "Sources/iOS"
-        ),
+		.target(
+			name: "FCLiOS",
+			dependencies: [
+				"FCLCore",
+				.product(name: "Flow", package: "flow-swift"),
+				.product(name: "Starscream", package: "Starscream"),
+				.product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
+				.product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"), // ⬅️ this is invalid
+			],
+			path: "Sources/iOS"
+		),
+
         
         // MARK: - Vapor Module
         .target(
